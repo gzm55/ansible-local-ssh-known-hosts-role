@@ -1,0 +1,36 @@
+---
+- name: search ssh fingerprints
+  connection: local
+  with_items:
+  - /etc/ssh/ssh_known_hosts
+  - "{{ '~/.ssh/known_hosts' | expanduser }}"
+  when: item | exists
+  command: ssh-keygen -F {{ ansible_host | default(inventory_hostname) }} -f {{ item }}
+  register: local_keygen
+  failed_when: local_keygen.stderr != ''
+  changed_when: False
+
+- name: fetch remote ssh fingerprints
+  connection: local
+  when: local_keygen.results | reject('skipped') | rejectattr('rc', 'equalto', 1) | list | length == 0
+  command: ssh-keyscan -H -t ed25519,rsa,ecdsa,dsa,rsa1 -p {{ ansible_port | default(22) }} {{ ansible_host | default(inventory_hostname) }}
+  register: local_keyscan
+  failed_when: local_keyscan.rc != 0 or local_keyscan.stdout == ''
+  changed_when: False
+
+- name: accept new ssh fingerprints
+  connection: local
+  with_items: "{{ local_keyscan.stdout_lines | default([]) }}"
+  known_hosts:
+    name: "{{ ansible_host | default(inventory_hostname) }}"
+    key: "{{ item }}"
+    state: present
+    #hash_host: True
+
+- name: the file mode of user known_hosts is 0600
+  connection: local
+  run_once: True
+  when: "'~/.ssh/known_hosts' | expanduser | exists"
+  file:
+    path: "{{ '~/.ssh/known_hosts' | expanduser }}"
+    mode: 0600

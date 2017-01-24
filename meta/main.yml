@@ -1,0 +1,30 @@
+galaxy_info:
+  author: James Z.M. Gao
+  description: A Role for accepting ssh fingerprints automatically for the first time.
+
+  license: BSD
+
+  min_ansible_version: 2.0
+
+  platforms:
+  - name: MacOSX
+    versions:
+    - all
+  - name: GenericBSD
+    versions:
+    - all
+  - name: GenericLinux
+    versions:
+    - all
+  - name: Windows
+    versions:
+    - all
+  - name: GenericUNIX
+    versions:
+    - all
+
+  galaxy_tags:
+  - networking
+  - system
+
+dependencies: []
