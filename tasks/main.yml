@@ -1,4 +1,22 @@
 ---
+- name: detect local commands
+  connection: local
+  run_once: True
+  with_items:
+  - ssh-keygen
+  - ssh-keyscan
+  - sed
+  command: which {{ item }}
+  changed_when: False
+
+- name: detect supported ssh fingerprint types
+  connection: local
+  run_once: True
+  shell: "ssh-keygen --help 2>&1 | sed -n '/rsa/ { s/.*-t \\|]//g; s/ | /,/g; p}'"
+  register: local_keygen_types
+  failed_when: local_keygen_types.rc != 0 or local_keygen_types.stdout == '' or local_keygen_types.stdout_lines | length != 1
+  changed_when: False
+
 - name: search ssh fingerprints
   connection: local
   with_items:
@@ -13,7 +31,7 @@
 - name: fetch remote ssh fingerprints
   connection: local
   when: local_keygen.results | reject('skipped') | rejectattr('rc', 'equalto', 1) | list | length == 0
-  command: ssh-keyscan -H -t ed25519,rsa,ecdsa,dsa,rsa1 -p {{ ansible_port | default(22) }} {{ ansible_host | default(inventory_hostname) }}
+  command: ssh-keyscan -H -t {{ local_keygen_types.stdout }} -p {{ ansible_port | default(22) }} {{ ansible_host | default(inventory_hostname) }}
   register: local_keyscan
   failed_when: local_keyscan.rc != 0 or local_keyscan.stdout == ''
   changed_when: False
