@@ -27,4 +27,8 @@ galaxy_info:
   - networking
   - system
 
-dependencies: []
+dependencies:
+- { role: gzm55.local_ansible_config, config_key: defaults/remote_port }
+
+- role: gzm55.require_local_command
+  command: [ ssh-keygen, ssh-keyscan ]

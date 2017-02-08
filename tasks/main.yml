@@ -1,17 +1,11 @@
 ---
-- name: detect local commands
-  connection: local
-  run_once: True
-  with_items: [ ssh-keygen, ssh-keyscan ]
-  command: which {{ item }}
-  changed_when: False
-
 - name: search ssh fingerprints
   connection: local
-  with_items:
-  - /etc/ssh/ssh_known_hosts
-  - "{{ '~/.ssh/known_hosts' | expanduser }}"
-  when: item | exists
+  with_items: >
+    {{ [ '/etc/ssh/ssh_known_hosts',
+         '~/.ssh/known_hosts' | expanduser ]
+       | select('exists')
+       | list }}
   command: >
     ssh-keygen
     -F {{ ansible_host | d(inventory_hostname) }}
@@ -31,25 +25,12 @@
     ignore_errors: True
     changed_when: False
 
-  - name: read remote_port from config
-    connection: local
-    run_once: True
-    set_fact:
-      ansible_cfg_remote_port: "{{ lookup('ini', 'remote_port section=defaults file={{item}}') | d('22', True) }}"
-    with_first_found:
-    - files:
-      - "{{ lookup('env', 'ANSIBLE_CONFIG') | d('ansible.cfg', True) }}"
-      - ansible.cfg
-      - "{{ '~/.ansible.cfg' | expanduser }}"
-      - /etc/ansible/ansible.cfg
-      skip: True
-
   - name: fetch remote ssh fingerprints
     connection: local
     command: >
       ssh-keyscan -H
       -t {{ local_keyscan_types.results | rejectattr('failed') | map(attribute='item') | join(',') | d('fail') }}
-      -p {{ ansible_port | d(ansible_cfg_remote_port) | d(22) }}
+      -p {{ ansible_port | d(local_ansible_config['defaults/remote_port']) | d(22) }}
       {{ ansible_host | d(inventory_hostname) }}
     register: local_keyscan
     failed_when: local_keyscan.rc != 0 or local_keyscan.stdout == ''
