@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/gzm55/ansible-local-ssh-known-hosts-role.svg?branch=master)](https://travis-ci.org/gzm55/ansible-local-ssh-known-hosts-role)
 
-Role Name
+local_ssh_known_hosts
 =========
 
 A Role for accepting ssh fingerprints automatically for the first time.
@@ -8,7 +8,8 @@ A Role for accepting ssh fingerprints automatically for the first time.
 Requirements
 ------------
 
-None.
+ansible>=2.0
+jinja2>=2.8
 
 Role Variables
 --------------
@@ -18,7 +19,8 @@ None.
 Dependencies
 ------------
 
-None.
+- `gzm55.local_ansible_config`
+- `gzm55.require_local_command`
 
 Example Playbook
 ----------------
