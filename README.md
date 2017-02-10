@@ -9,7 +9,7 @@ Requirements
 ------------
 
 ansible>=2.0
-jinja2>=2.8
+jinja2>=2.7
 
 Role Variables
 --------------

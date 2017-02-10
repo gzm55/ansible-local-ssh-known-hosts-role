@@ -53,4 +53,4 @@
       path: "{{ '~/.ssh/known_hosts' | expanduser }}"
       mode: 0600
 
-  when: local_keygen.results | reject('skipped') | rejectattr('rc', 'equalto', 1) | list | length == 0
+  when: local_keygen.results | reject('skipped') | map(attribute='rc') | difference([1]) | list | length == 0
