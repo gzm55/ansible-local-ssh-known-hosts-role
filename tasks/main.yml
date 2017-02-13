@@ -1,6 +1,6 @@
 ---
 - name: search ssh fingerprints
-  connection: local
+  delegate_to: localhost
   with_items: >
     {{ [ '/etc/ssh/ssh_known_hosts',
          '~/.ssh/known_hosts' | expanduser ]
@@ -16,7 +16,7 @@
 
 - block:
   - name: detect supported ssh fingerprint types
-    connection: local
+    delegate_to: localhost
     run_once: True
     with_items: [ ed25519, rsa, ecdsa, dsa, rsa1 ]
     command: ssh-keyscan -t {{ item }}
@@ -26,7 +26,7 @@
     changed_when: False
 
   - name: fetch remote ssh fingerprints
-    connection: local
+    delegate_to: localhost
     command: >
       ssh-keyscan -H
       -t {{ local_keyscan_types.results | rejectattr('failed') | map(attribute='item') | join(',') | d('fail') }}
@@ -37,7 +37,7 @@
     changed_when: False
 
   - name: accept new ssh fingerprints
-    connection: local
+    delegate_to: localhost
     with_items: "{{ local_keyscan.stdout_lines | d([]) }}"
     known_hosts:
       name: "{{ ansible_host | d(inventory_hostname) }}"
@@ -45,8 +45,8 @@
       state: present
       #hash_host: True
 
-  - name: the file mode of user known_hosts is 0600
-    connection: local
+  - name: user known_hosts mode is 0600
+    delegate_to: localhost
     run_once: True
     when: "'~/.ssh/known_hosts' | expanduser | exists"
     file:
