@@ -27,6 +27,7 @@ galaxy_info:
 allow_duplicates: no
 dependencies:
 - { role: gzm55.require_implicity_localhost }
+- { role: gzm55.require_disabe_become }
 
 - role: gzm55.require_local_command
   command: [ ssh-keygen, ssh-keyscan ]
