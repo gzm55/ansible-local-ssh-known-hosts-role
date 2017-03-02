@@ -2,10 +2,10 @@
 - name: search ssh fingerprints
   delegate_to: localhost
   become: False
-  become_user: "{{ ansible_user | d(ansible_local_user, True) }}"
+  become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
   vars:
   - ansible_become: False
-  - ansible_become_user: "{{ ansible_user | d(ansible_local_user, True) }}"
+  - ansible_become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
   with_items: >
     {{ [ '/etc/ssh/ssh_known_hosts',
          '~/.ssh/known_hosts' | expanduser ]
@@ -23,10 +23,10 @@
   - name: detect supported ssh fingerprint types
     delegate_to: localhost
     become: False
-    become_user: "{{ ansible_user | d(ansible_local_user, True) }}"
+    become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
     vars:
     - ansible_become: False
-    - ansible_become_user: "{{ ansible_user | d(ansible_local_user, True) }}"
+    - ansible_become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
     run_once: True
     with_items: [ ed25519, rsa, ecdsa, dsa, rsa1 ]
     raw: ssh-keyscan -t {{ item }}
@@ -38,10 +38,10 @@
   - name: fetch remote ssh fingerprints
     delegate_to: localhost
     become: False
-    become_user: "{{ ansible_user | d(ansible_local_user, True) }}"
+    become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
     vars:
     - ansible_become: False
-    - ansible_become_user: "{{ ansible_user | d(ansible_local_user, True) }}"
+    - ansible_become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
     raw: >
       ssh-keyscan -H
       -t {{ local_keyscan_types.results | rejectattr('failed') | map(attribute='item') | join(',') | d('fail') }}
@@ -54,10 +54,10 @@
   - name: accept new ssh fingerprints
     delegate_to: localhost
     become: False
-    become_user: "{{ ansible_user | d(ansible_local_user, True) }}"
+    become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
     vars:
     - ansible_become: False
-    - ansible_become_user: "{{ ansible_user | d(ansible_local_user, True) }}"
+    - ansible_become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
     with_items: "{{ local_keyscan.stdout_lines | d([]) }}"
     known_hosts:
       name: "{{ hostvars[inventory_hostname].ansible_host | d(inventory_hostname) }}"
@@ -68,10 +68,10 @@
   - name: user known_hosts mode is 0600
     delegate_to: localhost
     become: False
-    become_user: "{{ ansible_user | d(ansible_local_user, True) }}"
+    become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
     vars:
     - ansible_become: False
-    - ansible_become_user: "{{ ansible_user | d(ansible_local_user, True) }}"
+    - ansible_become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
     run_once: True
     when: "'~/.ssh/known_hosts' | expanduser | exists"
     file:
