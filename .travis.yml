@@ -33,8 +33,8 @@ script:
   - ansible-playbook tests/test.yml -i tests/inventory
   - ansible-playbook tests/test.yml -i tests/inventory
   - rm ~/.ssh/known_hosts
-  - ansible-playbook tests/test.yml -i tests/inventory --become -vvvvv
-  - ansible-playbook tests/test.yml -i tests/inventory --become -vvvvv
+  - ansible-playbook tests/test.yml -i tests/inventory --become
+  - ansible-playbook tests/test.yml -i tests/inventory --become
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
