@@ -17,7 +17,7 @@
             hostvars[inventory_hostname].ansible_host | d(inventory_hostname),
             (ansible_port | d(22) == 22) | ternary('', ']:'),
             (ansible_port | d(22) == 22) | ternary('', ansible_port)
-          ] | join('') }}
+          ] | join('') }} \
     -f {{ item }}
   register: local_keygen
   failed_when: local_keygen.stderr != ''
