@@ -11,9 +11,13 @@
          '~/.ssh/known_hosts' | expanduser ]
        | select('exists')
        | list }}
-  raw: >
+  raw: >-
     ssh-keygen
-    -F {{ hostvars[inventory_hostname].ansible_host | d(inventory_hostname) }}
+    -F {{ [ (ansible_port | d(22) == 22) | ternary('', '['),
+            hostvars[inventory_hostname].ansible_host | d(inventory_hostname),
+            (ansible_port | d(22) == 22) | ternary('', ']:'),
+            (ansible_port | d(22) == 22) | ternary('', ansible_port)
+          ] | join('') }}
     -f {{ item }}
   register: local_keygen
   failed_when: local_keygen.stderr != ''
@@ -60,7 +64,12 @@
     - ansible_become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
     with_items: "{{ local_keyscan.stdout_lines | d([]) }}"
     known_hosts:
-      name: "{{ hostvars[inventory_hostname].ansible_host | d(inventory_hostname) }}"
+      name: >-
+        {{ [ (ansible_port | d(22) == 22) | ternary('', '['),
+             hostvars[inventory_hostname].ansible_host | d(inventory_hostname),
+             (ansible_port | d(22) == 22) | ternary('', ']:'),
+             (ansible_port | d(22) == 22) | ternary('', ansible_port)
+           ] | join('') }}
       key: "{{ item }}"
       state: present
       #hash_host: True
