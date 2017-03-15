@@ -62,7 +62,12 @@
     vars:
     - ansible_become: False
     - ansible_become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
-    with_items: "{{ local_keyscan.stdout_lines | d([]) }}"
+    with_items: "{{ local_keyscan.stdout_lines
+                    | d([])
+                    | map('regex_replace',
+                          (ansible_port | d(22) == 22) | ternary('^(.)$', '^([^[ ]*) '),
+                          '[\\1]:' + (ansible_port | d(22) | string) + ' ')
+                    | list }}"
     known_hosts:
       name: >-
         {{ [ (ansible_port | d(22) == 22) | ternary('', '['),
