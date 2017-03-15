@@ -46,8 +46,8 @@
     vars:
     - ansible_become: False
     - ansible_become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
-    raw: >
-      ssh-keyscan -H
+    raw: >-
+      ssh-keyscan {{ (ansible_port | d(22) == 22) | ternary('-H', '') }}
       -t {{ local_keyscan_types.results | rejectattr('failed') | map(attribute='item') | join(',') | d('fail') }}
       -p {{ ansible_port | d(22) }}
       {{ hostvars[inventory_hostname].ansible_host | d(inventory_hostname) }}
