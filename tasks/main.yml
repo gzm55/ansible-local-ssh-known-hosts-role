@@ -90,6 +90,7 @@
     when: "'~/.ssh/known_hosts' | expanduser | exists"
     file:
       path: "{{ '~/.ssh/known_hosts' | expanduser }}"
-      mode: 0600
+      owner: "{{ lookup('id', 'euname') }}"
+      mode: 'u=rw,g=,o='
 
   when: local_keygen.results | reject('skipped') | map(attribute='rc') | difference([1]) | list | length == 0
