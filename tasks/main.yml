@@ -6,7 +6,7 @@
   vars:
   - ansible_become: False
   - ansible_become_user: "{{ ansible_user | d(lookup('id', 'euname'), True) }}"
-  when: ([ hostvars[inventory_hostname].ansible_connection | d('smart') ]) | intersect(['ssh', 'smart']) | list | length == 1
+  when: ([ hostvars[inventory_hostname].ansible_connection | d('smart') ]) | intersect(['ssh', 'smart', 'paramiko']) | list | length == 1
   with_items: >
     {{ [ '/etc/ssh/ssh_known_hosts',
          '~/.ssh/known_hosts' | expanduser ]
@@ -95,5 +95,5 @@
       mode: 'u=rw,g=,o='
 
   when:
-  - ([ hostvars[inventory_hostname].ansible_connection | d('smart') ]) | intersect(['ssh', 'smart']) | list | length == 1
+  - ([ hostvars[inventory_hostname].ansible_connection | d('smart') ]) | intersect(['ssh', 'smart', 'paramiko']) | list | length == 1
   - local_keygen.results | reject('skipped') | map(attribute='rc') | difference([1]) | list | length == 0
