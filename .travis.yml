@@ -16,7 +16,7 @@ install:
   - pip install ansible ansible-lint
 
   # patch ansible-lint issue 250
-  - sed -i '/^\s*_jinja = re\.compile([^),]*)/ s/)\s*$/, re.DOTALL)/' `python -c "import ansiblelint; print(os.path.dirname(os.path.abspath(ansiblelint.__file__))+'/rules/UsingBareVariablesIsDeprecatedRule.py')"`
+  - sed -i '/^\s*_jinja = re\.compile([^),]*)/ s/)\s*$/, re.DOTALL)/' `python -c "import os, ansiblelint; print(os.path.dirname(os.path.abspath(ansiblelint.__file__))+'/rules/UsingBareVariablesIsDeprecatedRule.py')"`
 
   # Check ansible version
   - ansible --version
