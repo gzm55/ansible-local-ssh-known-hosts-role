@@ -13,7 +13,10 @@ addons:
 
 install:
   # Install ansible
-  - pip install ansible
+  - pip install ansible ansible-lint
+
+  # patch ansible-lint issue 250
+  - sed -i '/^\s*_jinja = re\.compile([^),]*)/ s/)\s*$/, re.DOTALL)/' `python -c "import ansiblelint; print(os.path.dirname(os.path.abspath(ansiblelint.__file__))+'/rules/UsingBareVariablesIsDeprecatedRule.py')"`
 
   # Check ansible version
   - ansible --version
@@ -28,6 +31,9 @@ install:
 script:
   # Basic role syntax check
   - ansible-playbook tests/test.yml -i tests/inventory --syntax-check
+  - ansible-lint .
+  - ansible-lint tests/test.yml
+
   - ansible-playbook tests/test.yml -i tests/inventory
   - rm ~/.ssh/known_hosts
   - ansible-playbook tests/test.yml -i tests/inventory

@@ -1,2 +1,3 @@
 github.com
 gitlab.com ansible_become=True
+docker-test ansible_connetion=docker
