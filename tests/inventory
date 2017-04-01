@@ -1,4 +1,4 @@
-winrm-test ansible_connection=winrm ansible_user=x
+lxc-test ansible_connection=lxc ansible_user=x
 github.com
 gitlab.com ansible_become=True
 old-ssh-var ansible_ssh_host=gitlab.com ansible_become=True
