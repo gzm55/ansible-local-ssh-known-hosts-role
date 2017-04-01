@@ -1,4 +1,4 @@
-docker-test ansible_connection=docker
+docker-test ansible_connection=docker ansible_user=x
 github.com
 gitlab.com ansible_become=True
 old-ssh-var ansible_ssh_host=gitlab.com ansible_become=True
