@@ -28,7 +28,7 @@
           | intersect(['ssh', 'smart', 'paramiko'])
     raw: ssh-keyscan -t {{ item }}
     register: local_keyscan_types
-    failed_when: local_keyscan_types.stderr | match('unknown key type.*')
+    failed_when: local_keyscan_types.stderr is match('unknown key type.*')
     ignore_errors: True
     changed_when: False
 
@@ -40,7 +40,7 @@
         -p {{ inv_port }}
         {{ inv_host }}
       register: local_keyscan
-      failed_when: local_keyscan.rc or local_keyscan.stdout
+      failed_when: local_keyscan.rc or not local_keyscan.stdout
       changed_when: False
 
     - name: accept new ssh fingerprints
@@ -115,5 +115,4 @@
   - inv_conn_is_ssh: >-
       {{ ([ hostvars[inventory_hostname].ansible_connection
             | d('smart') ])
-         | intersect(['ssh', 'smart', 'paramiko'])
-         | bool }}
+         | intersect(['ssh', 'smart', 'paramiko']) }}
