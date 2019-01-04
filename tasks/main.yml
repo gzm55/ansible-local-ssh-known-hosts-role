@@ -16,7 +16,7 @@
             ] | join('') }} \
       -f {{ item }}
     register: local_keygen
-    failed_when: local_keygen.stderr != ''
+    failed_when: local_keygen.stderr
     changed_when: False
 
   - name: detect supported ssh fingerprint types
@@ -26,8 +26,6 @@
           | map(attribute='ansible_connection')
           | map('d', 'smart')
           | intersect(['ssh', 'smart', 'paramiko'])
-          | list
-          | length > 0
     raw: ssh-keyscan -t {{ item }}
     register: local_keyscan_types
     failed_when: local_keyscan_types.stderr | match('unknown key type.*')
@@ -42,7 +40,7 @@
         -p {{ inv_port }}
         {{ inv_host }}
       register: local_keyscan
-      failed_when: local_keyscan.rc != 0 or local_keyscan.stdout == ''
+      failed_when: local_keyscan.rc or local_keyscan.stdout
       changed_when: False
 
     - name: accept new ssh fingerprints
@@ -73,18 +71,15 @@
 
     when:
     - inv_conn_is_ssh
-    - local_keygen.results
-      | reject('skipped')
-      | map(attribute='rc')
-      | difference([1])
-      | list
-      | length == 0
+    - not local_keygen.results
+          | reject('skipped')
+          | map(attribute='rc')
+          | difference([1])
 
   delegate_to: localhost
   become: False
   become_user: >-
-    {{ ansible_version.full
-       | version_compare('2.0', '<')
+    {{ ansible_version.full is version_compare('2.0', '<')
        | ternary(hostvars[inventory_hostname].ansible_ssh_user
                  | d(ansible_ssh_user),
                  hostvars[inventory_hostname].ansible_ssh_user
@@ -95,8 +90,7 @@
   vars:
   - ansible_become: False
   - ansible_become_user: >-
-      {{ ansible_version.full
-         | version_compare('2.0', '<')
+      {{ ansible_version.full is version_compare('2.0', '<')
          | ternary(hostvars[inventory_hostname].ansible_ssh_user
                    | d(ansible_ssh_user),
                    hostvars[inventory_hostname].ansible_ssh_user
@@ -105,14 +99,12 @@
                    | d(ansible_user))
          | d(lookup('id', 'euname'), True) }}
   - inv_host: >-
-      {{ ansible_version.full
-         | version_compare('2.0', '<')
+      {{ ansible_version.full is version_compare('2.0', '<')
          | ternary(hostvars[inventory_hostname].ansible_ssh_host,
                    hostvars[inventory_hostname].ansible_ssh_host | d(hostvars[inventory_hostname].ansible_host, True))
          | d(inventory_hostname, True) }}
   - inv_port: >-
-      {{ ansible_version.full
-         | version_compare('2.0', '<')
+      {{ ansible_version.full is version_compare('2.0', '<')
          | ternary(hostvars[inventory_hostname].ansible_ssh_port | d(ansible_ssh_port),
                    hostvars[inventory_hostname].ansible_ssh_port
                    | d(hostvars[inventory_hostname].ansible_port)
@@ -124,5 +116,4 @@
       {{ ([ hostvars[inventory_hostname].ansible_connection
             | d('smart') ])
          | intersect(['ssh', 'smart', 'paramiko'])
-         | list
-         | length == 1 }}
+         | bool }}

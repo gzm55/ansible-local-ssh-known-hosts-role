@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/gzm55/ansible-local-ssh-known-hosts-role.svg?branch=master)](https://travis-ci.org/gzm55/ansible-local-ssh-known-hosts-role)
 
-local_ssh_known_hosts
-=========
+local_ssh_known_hosts (0.0.2-dev)
+=================================
 
 A Role for accepting ssh fingerprints automatically for the first time.
 
