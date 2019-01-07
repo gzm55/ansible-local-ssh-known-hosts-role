@@ -58,8 +58,8 @@
       key_types: "{{ local_keyscan_types.results
                      | rejectattr('failed')
                      | map(attribute='item')
-                     | union(['rsa', 'dsa'])
                      | list
+                     | union(['rsa', 'dsa'])
                      | join(',') }}"
     when:
     - inv_conn_is_ssh
