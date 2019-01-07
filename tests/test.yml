@@ -3,3 +3,8 @@
   gather_facts: False
   roles:
   - ansible-local-ssh-known-hosts-role
+  tasks:
+  - name: assert the hosts are in the known_hosts
+    when: inventory_hostname != 'lxc-test'
+    assert:
+      that: "q('lines', 'ssh-keygen -F ' + inventory_hostname)"

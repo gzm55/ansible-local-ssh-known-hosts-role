@@ -24,8 +24,7 @@
   - name: search ssh fingerprints
     when: inv_conn_is_ssh
     with_items: >
-      {{ [ '/etc/ssh/ssh_known_hosts',
-           '~/.ssh/known_hosts' | expanduser ]
+      {{ [ '/etc/ssh/ssh_known_hosts', '~/.ssh/known_hosts' | expanduser ]
          | select('exists')
          | list }}
     raw: >-
