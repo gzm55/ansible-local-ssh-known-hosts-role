@@ -1,5 +1,26 @@
 ---
-- block:
+- name: all works run locally
+  delegate_to: localhost
+  when: lookup('config', 'HOST_KEY_CHECKING')
+  vars:
+  - ansible_become: False
+  - ansible_become_user: "{{ lookup('id', 'uname') }}"
+  - inv_host: >-
+      {{ hostvars[inventory_hostname].ansible_ssh_host | d(hostvars[inventory_hostname].ansible_host, True)
+         | d(inventory_hostname, True) }}
+  - inv_port: >-
+      {{ hostvars[inventory_hostname].ansible_ssh_port
+         | d(hostvars[inventory_hostname].ansible_port)
+         | d(ansible_ssh_port)
+         | d(ansible_port)
+         | d(22) }}
+  - inv_port_is_22: "{{ inv_port | int == 22 }}"
+  - inv_conn_is_ssh: >-
+      {{ ([ hostvars[inventory_hostname].ansible_connection
+            | d('smart') ])
+         | intersect(['ssh', 'smart', 'paramiko', 'persistent']) }}
+
+  block:
   - name: search ssh fingerprints
     when: inv_conn_is_ssh
     with_items: >
@@ -13,32 +34,45 @@
               inv_host,
               inv_port_is_22 | ternary('', ']:'),
               inv_port_is_22 | ternary('', inv_port)
-            ] | join('') }} \
-      -f {{ item }}
+            ] | join('') | quote }} \
+      -f {{ item | quote }}
     register: local_keygen
     failed_when: local_keygen.stderr
     changed_when: False
 
   - name: detect supported ssh fingerprint types
     run_once: True
-    with_items: [ ed25519, rsa, ecdsa, dsa, rsa1 ]
+    with_items: [ ed25519, ecdsa, rsa1 ]
     when: hostvars
           | map(attribute='ansible_connection')
           | map('d', 'smart')
-          | intersect(['ssh', 'smart', 'paramiko'])
+          | intersect(['ssh', 'smart', 'paramiko', 'persistent'])
     raw: ssh-keyscan -t {{ item }}
     register: local_keyscan_types
     failed_when: local_keyscan_types.stderr is match('unknown key type.*')
     ignore_errors: True
     changed_when: False
 
-  - block:
+  - name: for new ssh hosts
+    vars:
+      key_types: "{{ local_keyscan_types.results
+                     | rejectattr('failed')
+                     | map(attribute='item')
+                     | union(['rsa', 'dsa'])
+                     | join(',') }}"
+    when:
+    - inv_conn_is_ssh
+    - not local_keygen.results
+          | reject('skipped')
+          | map(attribute='rc')
+          | difference([1])
+    block:
     - name: fetch remote ssh fingerprints
       raw: >-
         ssh-keyscan {{ inv_port_is_22 | ternary('-H', '') }}
-        -t {{ local_keyscan_types.results | rejectattr('failed') | map(attribute='item') | join(',') | d('fail') }}
-        -p {{ inv_port }}
-        {{ inv_host }}
+        -t {{ key_types }}
+        -p {{ inv_port | quote }}
+        {{ inv_host | quote }}
       register: local_keyscan
       failed_when: local_keyscan.rc or not local_keyscan.stdout
       changed_when: False
@@ -59,7 +93,7 @@
              ] | join('') }}
         key: "{{ item }}"
         state: present
-        #hash_host: True
+        hash_host: True
 
     - name: user known_hosts mode is 0600
       run_once: True
@@ -68,51 +102,3 @@
         path: "{{ '~/.ssh/known_hosts' | expanduser }}"
         owner: "{{ lookup('id', 'euname') }}"
         mode: 'u=rw,g=,o='
-
-    when:
-    - inv_conn_is_ssh
-    - not local_keygen.results
-          | reject('skipped')
-          | map(attribute='rc')
-          | difference([1])
-
-  delegate_to: localhost
-  become: False
-  become_user: >-
-    {{ ansible_version.full is version_compare('2.0', '<')
-       | ternary(hostvars[inventory_hostname].ansible_ssh_user
-                 | d(ansible_ssh_user),
-                 hostvars[inventory_hostname].ansible_ssh_user
-                 | d(hostvars[inventory_hostname].ansible_user)
-                 | d(ansible_ssh_user)
-                 | d(ansible_user))
-       | d(lookup('id', 'euname'), True) }}
-  vars:
-  - ansible_become: False
-  - ansible_become_user: >-
-      {{ ansible_version.full is version_compare('2.0', '<')
-         | ternary(hostvars[inventory_hostname].ansible_ssh_user
-                   | d(ansible_ssh_user),
-                   hostvars[inventory_hostname].ansible_ssh_user
-                   | d(hostvars[inventory_hostname].ansible_user)
-                   | d(ansible_ssh_user)
-                   | d(ansible_user))
-         | d(lookup('id', 'euname'), True) }}
-  - inv_host: >-
-      {{ ansible_version.full is version_compare('2.0', '<')
-         | ternary(hostvars[inventory_hostname].ansible_ssh_host,
-                   hostvars[inventory_hostname].ansible_ssh_host | d(hostvars[inventory_hostname].ansible_host, True))
-         | d(inventory_hostname, True) }}
-  - inv_port: >-
-      {{ ansible_version.full is version_compare('2.0', '<')
-         | ternary(hostvars[inventory_hostname].ansible_ssh_port | d(ansible_ssh_port),
-                   hostvars[inventory_hostname].ansible_ssh_port
-                   | d(hostvars[inventory_hostname].ansible_port)
-                   | d(ansible_ssh_port)
-                   | d(ansible_port))
-         | d(22) }}
-  - inv_port_is_22: "{{ inv_port | int == 22 }}"
-  - inv_conn_is_ssh: >-
-      {{ ([ hostvars[inventory_hostname].ansible_connection
-            | d('smart') ])
-         | intersect(['ssh', 'smart', 'paramiko']) }}

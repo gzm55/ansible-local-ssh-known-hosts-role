@@ -4,7 +4,8 @@ galaxy_info:
 
   license: BSD
 
-  min_ansible_version: 2.0
+  ## known_hosts module need parameter 'hash_host'
+  min_ansible_version: 2.3
 
   platforms:
   - name: GenericBSD
@@ -26,9 +27,10 @@ galaxy_info:
 
 allow_duplicates: no
 dependencies:
-- { role: gzm55.require_implicity_localhost }
-- { role: gzm55.require_disabe_become }
-- { role: gzm55.local_id_plugin }
+- role: gzm55.require_implicity_localhost
+- role: gzm55.local_id_plugin
+- role: gzm55.require_disabe_become
+  version: "1.0.0"
 
 - role: gzm55.require_local_command
   command: [ ssh-keygen, ssh-keyscan ]
