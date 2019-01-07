@@ -59,6 +59,7 @@
                      | rejectattr('failed')
                      | map(attribute='item')
                      | union(['rsa', 'dsa'])
+                     | list
                      | join(',') }}"
     when:
     - inv_conn_is_ssh
