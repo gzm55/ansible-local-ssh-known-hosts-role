@@ -7,4 +7,4 @@
   - name: assert the hosts are in the known_hosts
     when: inventory_hostname != 'lxc-test'
     assert:
-      that: "q('lines', 'ssh-keygen -F ' + inventory_hostname)"
+      that: "q('lines', 'ssh-keygen -F ' +  ansible_ssh_host | d(inventory_hostname, True))"
