@@ -65,7 +65,7 @@
                  | selectattr('value.ssh_keyscan_host', 'defined')
                  | map(attribute='value.ssh_keyscan_host')
                  | unique
-                 | join('\n') }}"
+                 | join('\n') + '\n' }}"
 
   - name: debug cat list
     debug: msg="{{ cat_result }}"
