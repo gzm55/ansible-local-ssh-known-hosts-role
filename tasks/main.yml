@@ -1,4 +1,10 @@
 ---
+## check host list:
+## if not host-key-check --> []
+## if para auto add --> remove all para-ssh hosts
+## if not para auto add --> put all para-ssh hosts into result list
+## if ssh >= 7.6, remove all ssh hosts, use ssh_args
+## if ssh < 7.6, check key first, if not key, put into result list
 - name: all works run locally
   delegate_to: localhost
   when: lookup('config', 'HOST_KEY_CHECKING')
@@ -53,6 +59,7 @@
     run_once: True
     when: inventory_hostname == ansible_play_hosts[0]
     command: cat
+    args:
       stdin: "{{ hostvars
                  | dict2items
                  | selectattr('value.ssh_keyscan_host', 'defined')
