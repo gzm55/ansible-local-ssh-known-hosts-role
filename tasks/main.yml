@@ -53,12 +53,12 @@
     run_once: True
     when: inventory_hostname == ansible_play_hosts[0]
     command: cat
-    stdin: "{{ hostvars
-               | dict2items
-               | selectattr('value.ssh_keyscan_host', 'defined')
-               | map(attribute='value.ssh_keyscan_host')
-               | unique
-               | join('\n') }}"
+      stdin: "{{ hostvars
+                 | dict2items
+                 | selectattr('value.ssh_keyscan_host', 'defined')
+                 | map(attribute='value.ssh_keyscan_host')
+                 | unique
+                 | join('\n') }}"
 
   - name: debug cat list
     debug: msg="{{ cat_result }}"
