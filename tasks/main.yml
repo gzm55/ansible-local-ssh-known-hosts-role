@@ -60,7 +60,7 @@
     when: inventory_hostname == ansible_play_hosts[0]
     command: cat
     args:
-      stdin: "{{ hostvars
+      stdin: "{{ dict(hostvars)
                  | dict2items
                  | selectattr('value.ssh_keyscan_host', 'defined')
                  | map(attribute='value.ssh_keyscan_host')
