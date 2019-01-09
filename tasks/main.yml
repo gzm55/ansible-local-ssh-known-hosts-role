@@ -22,11 +22,11 @@
 
   block:
   - name: search ssh fingerprints
-    when: inv_conn_is_ssh
-    with_items: >
-      {{ [ '/etc/ssh/ssh_known_hosts', '~/.ssh/known_hosts' | expanduser ]
-         | select('exists')
-         | list }}
+    register: local_keygen
+    when:
+    - inv_conn_is_ssh
+    - not local_keygen | d or not local_keygen.rc # if found, break the loop
+    with_items: "{{ [ '~/.ssh/known_hosts' | expanduser, '/etc/ssh/ssh_known_hosts' ] | select('exists') | list }}"
     raw: >-
       ssh-keygen
       -F {{ [ inv_port_is_22 | ternary('', '['),
@@ -35,9 +35,33 @@
               inv_port_is_22 | ternary('', inv_port)
             ] | join('') | quote }} \
       -f {{ item | quote }}
-    register: local_keygen
     failed_when: local_keygen.stderr
     changed_when: False
+
+  - name: collect hosts for ssh-keyscan
+    when:
+    - inv_conn_is_ssh
+    - not local_keygen.results
+          | reject('skipped')
+          | map(attribute='rc')
+          | difference([1])
+    set_fact:
+      ssh_keyscan_host: "{{ inv_host }}"
+
+  - name: cat list
+    register: cat_result
+    run_once: True
+    when: inventory_hostname == ansible_play_hosts[0]
+    command: cat
+    stdin: "{{ hostvars
+               | dict2items
+               | selectattr('value.ssh_keyscan_host', 'defined')
+               | map(attribute='value.ssh_keyscan_host')
+               | unique
+               | join('\n') }}"
+
+  - name: debug cat list
+    debug: msg="{{ cat_result }}"
 
   - name: for new ssh hosts
     when:
@@ -76,7 +100,7 @@
 
     - name: user known_hosts mode is 0600
       run_once: True
-      when: "'~/.ssh/known_hosts' | expanduser | exists"
+      when: "'~/.ssh/known_hosts' | expanduser is exists"
       file:
         path: "{{ '~/.ssh/known_hosts' | expanduser }}"
         owner: "{{ lookup('id', 'euname') }}"
