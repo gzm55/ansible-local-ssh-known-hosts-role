@@ -32,7 +32,7 @@
     when:
     - inv_conn_is_ssh
     - not local_keygen | d or not local_keygen.rc # if found, break the loop
-    with_items: "{{ [ '~/.ssh/known_hosts' | expanduser, '/etc/ssh/ssh_known_hosts' ] | select('exists') | list }}"
+    loop: "{{ [ '~/.ssh/known_hosts' | expanduser, '/etc/ssh/ssh_known_hosts' ] | select('exists') | list }}"
     raw: >-
       ssh-keygen
       -F {{ [ inv_port_is_22 | ternary('', '['),
@@ -66,47 +66,13 @@
     loop_control:
       label: "hosts with port {{ item.0 }}"
 
-  - name: for new ssh hosts
+  - name: user known_hosts mode is 0600
+    run_once: True
     when:
-    - inv_conn_is_ssh
-    - not local_keygen.results
-          | reject('skipped')
-          | map(attribute='rc')
-          | difference([1])
-    block:
-    - name: fetch remote ssh fingerprints
-      when: False
-      raw: >-
-        ssh-keyscan -H
-        -p {{ inv_port | quote }}
-        {{ inv_host | quote }}
-      register: local_keyscan
-      failed_when: local_keyscan.rc or not local_keyscan.stdout
-      changed_when: False
-
-    - name: accept new ssh fingerprints
-      when: False
-      with_items: "{{ local_keyscan.stdout_lines
-                      | d([])
-                      | map('regex_replace',
-                            inv_port_is_22 | ternary('^(.)$', '^([^[ ]*) '),
-                            '[\\1]:' + inv_port + ' ')
-                      | list }}"
-      known_hosts:
-        name: >-
-          {{ [ inv_port_is_22 | ternary('', '['),
-               inv_host,
-               inv_port_is_22 | ternary('', ']:'),
-               inv_port_is_22 | ternary('', inv_port)
-             ] | join('') }}
-        key: "{{ item }}"
-        state: present
-        hash_host: True
-
-    - name: user known_hosts mode is 0600
-      run_once: True
-      when: "'~/.ssh/known_hosts' | expanduser is exists"
-      file:
-        path: "{{ '~/.ssh/known_hosts' | expanduser }}"
-        owner: "{{ lookup('id', 'euname') }}"
-        mode: 'u=rw,g=,o='
+    - '~/.ssh/known_hosts' | expanduser is exists
+    - inventory_hostname == ansible_play_hosts[0]
+    - groups.all | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | list
+    file:
+      path: "{{ '~/.ssh/known_hosts' | expanduser }}"
+      owner: "{{ lookup('id', 'euname') }}"
+      mode: 'u=rw,g=,o='
