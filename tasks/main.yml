@@ -69,7 +69,7 @@
   - name: user known_hosts mode is 0600
     run_once: True
     when:
-    - '~/.ssh/known_hosts' | expanduser is exists
+    - ('~/.ssh/known_hosts') | expanduser is exists
     - inventory_hostname == ansible_play_hosts[0]
     - groups.all | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | list
     file:
