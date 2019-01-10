@@ -5,26 +5,21 @@
 ## if not para auto add --> put all para-ssh hosts into result list
 ## if ssh >= 7.6, remove all ssh hosts, use ssh_args
 ## if ssh < 7.6, check key first, if not key, put into result list
+
+- name: save context
+  register: current_play_context_known_hosts
+  current_play_context_known_hosts:
+
 - name: all works run locally
   delegate_to: localhost
   when: lookup('config', 'HOST_KEY_CHECKING')
   vars:
   - ansible_become: False
   - ansible_become_user: "{{ lookup('id', 'uname') }}"
-  - inv_host: >-
-      {{ hostvars[inventory_hostname].ansible_ssh_host | d(hostvars[inventory_hostname].ansible_host, True)
-         | d(inventory_hostname, True) }}
-  - inv_port: >-
-      {{ hostvars[inventory_hostname].ansible_ssh_port
-         | d(hostvars[inventory_hostname].ansible_port)
-         | d(ansible_ssh_port)
-         | d(ansible_port)
-         | d(22) }}
+  - inv_host: "{{ current_play_context_known_hosts.remote_addr }}"
+  - inv_port: "{{ current_play_context_known_hosts.port | d(22, True) }}"
   - inv_port_is_22: "{{ inv_port | int == 22 }}"
-  - inv_conn_is_ssh: >-
-      {{ ([ hostvars[inventory_hostname].ansible_connection
-            | d('smart') ])
-         | intersect(['ssh', 'smart', 'paramiko', 'persistent']) }}
+  - inv_conn_is_ssh: "{{ ([ current_play_context_known_hosts.connection ]) | intersect(['ssh', 'paramiko']) }}"
 
   block:
   - name: search ssh fingerprints
@@ -66,13 +61,16 @@
     loop_control:
       label: "hosts with port {{ item.0 }}"
 
-  - name: user known_hosts mode is 0600
-    run_once: True
-    when:
-    - ('~/.ssh/known_hosts') | expanduser is exists
-    - inventory_hostname == ansible_play_hosts[0]
-    - groups.all | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | list
-    file:
-      path: "{{ '~/.ssh/known_hosts' | expanduser }}"
-      owner: "{{ lookup('id', 'euname') }}"
-      mode: 'u=rw,g=,o='
+- name: user known_hosts mode is 0600
+  delegate_to: localhost
+  run_once: True
+  when:
+  - inventory_hostname == ansible_play_hosts[0]
+  - ('~/.ssh/known_hosts') | expanduser is exists
+  - groups.all
+    | map('extract', hostvars, ['current_play_context_known_hosts', 'connection'])
+    | intersect(['ssh', 'paramiko'])
+  file:
+    path: "{{ '~/.ssh/known_hosts' | expanduser }}"
+    owner: "{{ lookup('id', 'euname') }}"
+    mode: 'u=rw,g=,o='
