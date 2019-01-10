@@ -59,7 +59,7 @@
   - name: fetch remote ssh fingerprints
     run_once: True
     when: inventory_hostname == ansible_play_hosts[0]
-    shell: ssh-keyscan -H -f - -p {{ item.0 | quote }} >> {{ ~/.ssh/known_hosts' | expanduser | quote }}
+    shell: ssh-keyscan -H -f - -p {{ item.0 | quote }} >> {{ '~/.ssh/known_hosts' | expanduser | quote }}
     args:
       stdin: "{{ item.1 | map(attribute='h') | unique | join('\n') }}"
     loop: "{{ groups.all | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p') }}"
