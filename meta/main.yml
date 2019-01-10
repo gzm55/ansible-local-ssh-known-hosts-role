@@ -4,8 +4,8 @@ galaxy_info:
 
   license: BSD
 
-  ## known_hosts module need parameter 'hash_host'
-  min_ansible_version: 2.3
+  ## loop keyword
+  min_ansible_version: 2.5
 
   platforms:
   - name: GenericBSD

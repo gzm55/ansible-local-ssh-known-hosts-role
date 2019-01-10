@@ -52,31 +52,19 @@
           | map(attribute='rc')
           | difference([1])
     set_fact:
-      ssh_keyscan_host: "{{ inv_host }}"
+      ssh_keyscan_args:
+        h: "{{ inv_host }}"
+        p: "{{ inv_port }}"
 
-  - name: cat list
-    register: cat_result
+  - name: fetch remote ssh fingerprints
     run_once: True
     when: inventory_hostname == ansible_play_hosts[0]
-    command: cat
+    shell: ssh-keyscan -H -f - -p {{ item.0 | quote }} >> {{ ~/.ssh/known_hosts' | expanduser | quote }}
     args:
-      stdin: "{{ dict(hostvars)
-                 | dict2items
-                 | selectattr('value.ssh_keyscan_host', 'defined')
-                 | map(attribute='value.ssh_keyscan_host')
-                 | unique
-                 | join('\r') }}"
-
-  - name: debug cat list
-    run_once: True
-    when: inventory_hostname == ansible_play_hosts[0]
-    debug: msg="{{ dict(hostvars)
-                 | dict2items
-                 | selectattr('value.ssh_keyscan_host', 'defined')
-                 | map(attribute='value.ssh_keyscan_host')
-                 | unique
-                 | join('\n') }}"
-
+      stdin: "{{ item.1 | map(attribute='h') | unique | join('\n') }}"
+    loop: "{{ groups.all | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p') }}"
+    loop_control:
+      label: "hosts with port {{ item.0 }}"
 
   - name: for new ssh hosts
     when:
@@ -87,6 +75,7 @@
           | difference([1])
     block:
     - name: fetch remote ssh fingerprints
+      when: False
       raw: >-
         ssh-keyscan -H
         -p {{ inv_port | quote }}
@@ -96,6 +85,7 @@
       changed_when: False
 
     - name: accept new ssh fingerprints
+      when: False
       with_items: "{{ local_keyscan.stdout_lines
                       | d([])
                       | map('regex_replace',
