@@ -28,7 +28,7 @@
           | intersect(['ssh', 'smart', 'paramiko'])
     raw: ssh-keyscan -t {{ item }}
     register: local_keyscan_types
-    failed_when: local_keyscan_types.stderr is match('unknown key type.*')
+    failed_when: local_keyscan_types.stderr is match('[uU]nknown key type.*')
     ignore_errors: True
     changed_when: False
 
