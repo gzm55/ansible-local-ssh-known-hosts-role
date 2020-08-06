@@ -37,6 +37,17 @@
   - inv_conn_is_native_ssh or not lookup('config', 'PARAMIKO_HOST_KEY_AUTO_ADD')
 
   block:
+  - debug:
+      msg: "inv_conn_is_ssh={{ inv_conn_is_ssh }}"
+  - debug:
+      msg: "inv_conn_native_ssh_host_key_cheking={{ inv_conn_native_ssh_host_key_cheking }}"
+  - debug:
+      msg: "inv_conn_paramiko_ssh_host_key_cheking={{ inv_conn_paramiko_ssh_host_key_cheking }}"
+  - debug:
+      msg: "inv_conn_is_native_ssh={{ inv_conn_is_native_ssh }}"
+  - debug:
+      msg: "conf={{ lookup('config', 'PARAMIKO_HOST_KEY_AUTO_ADD') }}"
+
   - name: check openssh support for accept-new option
     when: inv_conn_is_native_ssh | bool
     set_fact:
