@@ -37,16 +37,13 @@
   - inv_conn_is_native_ssh or not lookup('config', 'PARAMIKO_HOST_KEY_AUTO_ADD')
 
   block:
-  - debug:
-      msg: "inv_conn_is_ssh={{ inv_conn_is_ssh }}"
-
   - name: check openssh support for accept-new option
     when: inv_conn_is_native_ssh
     set_fact:
       ssh_support_accept_new_hostkey: >-
         {{ lookup('pipe', (current_play_context_known_hosts.ssh_executable | quote)
                           + ' -oStrictHostKeyChecking=accept-new -V || echo FAIL')
-           is not search('FAIL')  }}
+           is not search('FAIL') }}
 
   - name: use accept-new option for openssh >= 7.6
     vars:
@@ -86,11 +83,23 @@
         h: "{{ inv_host }}"
         p: "{{ inv_port }}"
 
+  - debug:
+      var: ansible_play_batch
+  - debug:
+      msg: 1={{ ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') }}
+  - debug:
+      msg: 2={{ ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') }}
+  - debug:
+      msg: 3={{ ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p') }}
+  - debug:
+      var: vars
+
   - name: fetch remote ssh fingerprints
     run_once: True
     shell: ssh-keyscan -H -f - -p {{ item.0 | quote }} >> {{ '~/.ssh/known_hosts' | expanduser | quote }}
     args:
-      stdin: "{{ item.1 | map(attribute='h') | union([]) | join('\n') }}" # unique filter will trigger a warning in ansible-lint
+      # unique filter will trigger a warning in ansible-lint when expr contains loop_var
+      stdin: "{{ item.1 | map(attribute='h') | union([]) | join('\n') }}"
     loop: "{{ ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p') }}"
     loop_control:
       label: "hosts with port {{ item.0 }}"
