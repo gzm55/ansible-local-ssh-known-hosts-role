@@ -31,7 +31,7 @@
 
   block:
   - debug:
-      msg: "inv_conn_is_ssh={{ inv_conn_is_ssh }}"
+      msg: "inv_conn_is_ssh|bool={{ inv_conn_is_ssh | bool }}"
   - debug:
       msg: "inv_conn_native_ssh_host_key_cheking={{ inv_conn_native_ssh_host_key_cheking }}"
   - debug:
