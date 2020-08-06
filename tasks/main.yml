@@ -119,7 +119,7 @@
   shell: ssh-keyscan -H -f - -p {{ item.0 | quote }} >> {{ '~/.ssh/known_hosts' | expanduser | quote }}
   args:
     # unique filter will trigger a warning in ansible-lint when expr contains loop_var
-    stdin: "{{ item.1 | map(attribute='h') | union([]) | join('\n') }}"
+    stdin: "{{ item.1 | map(attribute='h') | union([]) | list | join('\n') }}"
   loop: "{{ ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p') }}"
   loop_control:
     label: "hosts with port {{ item.0 }}"
