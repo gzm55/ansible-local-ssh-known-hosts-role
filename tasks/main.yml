@@ -85,14 +85,34 @@
 
   - debug:
       var: ansible_play_batch
+    run_once: True
   - debug:
-      msg: 1={{ ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') }}
+      msg: 1={{ ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | list }}
+    run_once: True
   - debug:
-      msg: 2={{ ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') }}
+      msg: 2={{ ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | list }}
+    run_once: True
   - debug:
       msg: 3={{ ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p') }}
+    run_once: True
   - debug:
-      var: vars
+      msg: 4={{ (ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p'))[0] }}
+    run_once: True
+  - debug:
+      msg: 5={{ (ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p'))[0].1 }}
+    run_once: True
+  - debug:
+      msg: 6={{ (ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p'))[0].1 }}
+    run_once: True
+  - debug:
+      msg: 7={{ (ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p'))[0].1 | map(attribute='h') | list }}
+    run_once: True
+  - debug:
+      msg: 8={{ (ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p'))[0].1 | map(attribute='h') | union([]) | list }}
+    run_once: True
+  - debug:
+      msg: 9={{ (ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p'))[0].1 | map(attribute='h') | union([]) | join('\n') }}
+    run_once: True
 
   - name: fetch remote ssh fingerprints
     run_once: True
