@@ -42,7 +42,7 @@
     set_fact:
       ssh_support_accept_new_hostkey: >-
         {{ lookup('pipe', (current_play_context_known_hosts.ssh_executable | quote)
-                          + ' -oStrictHostKeyChecking=accept-new -V || echo FAIL')
+                          + ' -oStrictHostKeyChecking=accept-new -V 2>&1 || echo FAIL')
            is not search('FAIL') }}
 
   - name: use accept-new option for openssh >= 7.6
@@ -114,15 +114,15 @@
       msg: 9={{ (ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p'))[0].1 | map(attribute='h') | union([]) | join('\n') }}
     when: inventory_hostname == ansible_play_batch[0]
 
-  - name: fetch remote ssh fingerprints
-    run_once: True
-    shell: ssh-keyscan -H -f - -p {{ item.0 | quote }} >> {{ '~/.ssh/known_hosts' | expanduser | quote }}
-    args:
-      # unique filter will trigger a warning in ansible-lint when expr contains loop_var
-      stdin: "{{ item.1 | map(attribute='h') | union([]) | join('\n') }}"
-    loop: "{{ ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p') }}"
-    loop_control:
-      label: "hosts with port {{ item.0 }}"
+- name: fetch remote ssh fingerprints
+  run_once: True
+  shell: ssh-keyscan -H -f - -p {{ item.0 | quote }} >> {{ '~/.ssh/known_hosts' | expanduser | quote }}
+  args:
+    # unique filter will trigger a warning in ansible-lint when expr contains loop_var
+    stdin: "{{ item.1 | map(attribute='h') | union([]) | join('\n') }}"
+  loop: "{{ ansible_play_batch | map('extract', hostvars, 'ssh_keyscan_args') | select('defined') | groupby('p') }}"
+  loop_control:
+    label: "hosts with port {{ item.0 }}"
 
 - name: user known_hosts mode is 0600
   delegate_to: localhost
