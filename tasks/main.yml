@@ -10,37 +10,6 @@
   register: current_play_context_known_hosts
   current_play_context_known_hosts:
 
-- name: debug
-  delegate_to: localhost
-
-  vars:
-  - inv_host: "{{ current_play_context_known_hosts.remote_addr }}"
-  - inv_port: "{{ current_play_context_known_hosts.port | d(22, True) }}"
-  - inv_port_is_22: "{{ inv_port | int == 22 }}"
-  - inv_conn_is_ssh: "{{ ([ current_play_context_known_hosts.connection ]) | intersect(['ssh', 'paramiko']) }}"
-  - inv_conn_is_native_ssh: "{{ current_play_context_known_hosts.connection == 'ssh' }}"
-  - inv_conn_native_ssh_host_key_cheking: >-
-      {{ inv_conn_is_native_ssh and ansible_host_key_checking
-         | d(ansible_ssh_host_key_checking)
-         | d(lookup('config', 'HOST_KEY_CHECKING')) }}
-  - inv_conn_paramiko_ssh_host_key_cheking: >-
-      {{ not inv_conn_is_native_ssh and ansible_host_key_checking
-             | d(ansible_ssh_host_key_checking)
-             | d(ansible_paramiko_host_key_checking)
-             | d(lookup('config', 'HOST_KEY_CHECKING')) }}
-
-  block:
-  - debug:
-      msg: "inv_conn_is_ssh|bool={{ inv_conn_is_ssh | bool }}"
-  - debug:
-      msg: "inv_conn_native_ssh_host_key_cheking={{ inv_conn_native_ssh_host_key_cheking }}"
-  - debug:
-      msg: "inv_conn_paramiko_ssh_host_key_cheking={{ inv_conn_paramiko_ssh_host_key_cheking }}"
-  - debug:
-      msg: "inv_conn_is_native_ssh={{ inv_conn_is_native_ssh }}"
-  - debug:
-      msg: "conf={{ lookup('config', 'PARAMIKO_HOST_KEY_AUTO_ADD') }}"
-
 - name: all tasks run locally for necessary hosts
   delegate_to: localhost
 
@@ -50,7 +19,7 @@
   - inv_host: "{{ current_play_context_known_hosts.remote_addr }}"
   - inv_port: "{{ current_play_context_known_hosts.port | d(22, True) }}"
   - inv_port_is_22: "{{ inv_port | int == 22 }}"
-  - inv_conn_is_ssh: "{{ ([ current_play_context_known_hosts.connection ]) | intersect(['ssh', 'paramiko']) }}"
+  - inv_conn_is_ssh: "{{ ([ current_play_context_known_hosts.connection ]) | intersect(['ssh', 'paramiko']) | length | bool }}"
   - inv_conn_is_native_ssh: "{{ current_play_context_known_hosts.connection == 'ssh' }}"
   - inv_conn_native_ssh_host_key_cheking: >-
       {{ inv_conn_is_native_ssh and ansible_host_key_checking
@@ -63,24 +32,16 @@
              | d(lookup('config', 'HOST_KEY_CHECKING')) }}
 
   when:
-  - inv_conn_is_ssh | bool
+  - inv_conn_is_ssh
   - inv_conn_native_ssh_host_key_cheking or inv_conn_paramiko_ssh_host_key_cheking
   - inv_conn_is_native_ssh or not lookup('config', 'PARAMIKO_HOST_KEY_AUTO_ADD')
 
   block:
   - debug:
       msg: "inv_conn_is_ssh={{ inv_conn_is_ssh }}"
-  - debug:
-      msg: "inv_conn_native_ssh_host_key_cheking={{ inv_conn_native_ssh_host_key_cheking }}"
-  - debug:
-      msg: "inv_conn_paramiko_ssh_host_key_cheking={{ inv_conn_paramiko_ssh_host_key_cheking }}"
-  - debug:
-      msg: "inv_conn_is_native_ssh={{ inv_conn_is_native_ssh }}"
-  - debug:
-      msg: "conf={{ lookup('config', 'PARAMIKO_HOST_KEY_AUTO_ADD') }}"
 
   - name: check openssh support for accept-new option
-    when: inv_conn_is_native_ssh | bool
+    when: inv_conn_is_native_ssh
     set_fact:
       ssh_support_accept_new_hostkey: >-
         {{ lookup('pipe', (current_play_context_known_hosts.ssh_executable | quote)
