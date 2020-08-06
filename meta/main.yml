@@ -4,8 +4,8 @@ galaxy_info:
 
   license: BSD
 
-  ## loop keyword
-  min_ansible_version: 2.5
+  ## new vars ssh_common_args
+  min_ansible_version: 2.7
 
   platforms:
   - name: GenericBSD

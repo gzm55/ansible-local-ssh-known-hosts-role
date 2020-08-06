@@ -10,10 +10,7 @@ addons:
 
 install:
   # Install ansible
-  - pip install ansible ansible-lint
-
-  # patch ansible-lint issue 250
-  - sed -i '/^\s*_jinja = re\.compile([^),]*)/ s/)\s*$/, re.DOTALL)/' `python -c "import os, ansiblelint; print(os.path.dirname(os.path.abspath(ansiblelint.__file__))+'/rules/UsingBareVariablesIsDeprecatedRule.py')"`
+  - pip install ansible "ansible-lint>=4.2.0"
 
   # Check ansible version
   - ansible --version
