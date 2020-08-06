@@ -1,12 +1,21 @@
 ---
-dist:
-- xenial
-- bionic
+os: linux
+
+# xenial --> openssh 7.2
+dist: xenial
 
 language: python
 python:
-- "2.7"
-- "3.5"
+- 2.7
+- 3.5
+
+jobs:
+  include:
+  # bionic --> openssh 7.6
+  - dist: bionic
+    python: 2.7
+  - dist: bionic
+    python: 3.5
 
 # Install ansible
 addons:
