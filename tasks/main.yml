@@ -47,7 +47,7 @@
 
   - name: use accept-new option for openssh >= 7.6
     vars:
-      original_ansible_ssh_common_args: "{{ ansible_ssh_common_args | d(lookup('config', 'ANSIBLE_SSH_COMMON_ARGS')) }}"
+      original_ansible_ssh_common_args: "{{ ansible_ssh_common_args | d(lookup('env', 'ANSIBLE_SSH_COMMON_ARGS')) | d('') }}"
     when:
     - ssh_support_accept_new_hostkey | d
     set_fact:
