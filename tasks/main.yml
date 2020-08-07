@@ -88,6 +88,7 @@
   vars:
   - ansible_become: False
   - ansible_become_user: "{{ lookup('id', 'uname') }}"
+  - ansible_connection: local
   run_once: True
   shell: ssh-keyscan -H -f - -p {{ item.0 | quote }} >> {{ '~/.ssh/known_hosts' | expanduser | quote }}
   args:
@@ -101,7 +102,6 @@
   delegate_to: localhost
   run_once: True
   when:
-  - inventory_hostname == ansible_play_hosts[0]
   - ('~/.ssh/known_hosts') | expanduser is exists
   - groups.all
     | map('extract', hostvars, ['current_play_context_known_hosts', 'connection'])
