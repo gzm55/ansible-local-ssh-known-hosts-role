@@ -84,6 +84,10 @@
         p: "{{ inv_port }}"
 
 - name: fetch remote ssh fingerprints
+  delegate_to: localhost
+  vars:
+  - ansible_become: False
+  - ansible_become_user: "{{ lookup('id', 'uname') }}"
   run_once: True
   shell: ssh-keyscan -H -f - -p {{ item.0 | quote }} >> {{ '~/.ssh/known_hosts' | expanduser | quote }}
   args:
