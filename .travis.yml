@@ -45,11 +45,11 @@ script:
   - ansible-lint .
   - ansible-lint tests/test.yml
 
-  - ansible-playbook tests/test.yml -vvv -i tests/inventory
-  - rm ~/.ssh/known_hosts
+  - ansible-playbook tests/test.yml -i tests/inventory
+  - test ! -f ~/.ssh/known_hosts || rm ~/.ssh/known_hosts
   - ansible-playbook tests/test.yml -i tests/inventory
   - ansible-playbook tests/test.yml -i tests/inventory
-  - rm ~/.ssh/known_hosts
+  - test ! -f ~/.ssh/known_hosts || rm ~/.ssh/known_hosts
   - ansible-playbook tests/test.yml -i tests/inventory --become
   - ansible-playbook tests/test.yml -i tests/inventory --become
 
