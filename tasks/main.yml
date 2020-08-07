@@ -90,6 +90,7 @@
   - ansible_become_user: "{{ lookup('id', 'uname') }}"
   - ansible_connection: local
   run_once: True
+  when: item.1 | d([]) | map(attribute='h') | list | union([]) | length > 0
   shell: ssh-keyscan -H -f - -p {{ item.0 | quote }} >> {{ '~/.ssh/known_hosts' | expanduser | quote }}
   args:
     # unique filter will trigger a warning in ansible-lint when expr contains loop_var
