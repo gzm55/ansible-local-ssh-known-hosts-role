@@ -33,7 +33,3 @@ dependencies:
   version: master
 - role: gzm55.require_disabe_become
   version: "1.0.1"
-
-- role: gzm55.require_local_command
-  version: master
-  command: [ ssh-keygen, ssh-keyscan ]
