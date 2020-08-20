@@ -19,7 +19,7 @@
   - inv_host: "{{ current_play_context_known_hosts.remote_addr }}"
   - inv_port: "{{ current_play_context_known_hosts.port | d(22, True) }}"
   - inv_port_is_22: "{{ inv_port | int == 22 }}"
-  - inv_conn_is_ssh: "{{ ([ current_play_context_known_hosts.connection ]) | intersect(['ssh', 'paramiko']) | length | bool }}"
+  - inv_conn_is_ssh: "{{ current_play_context_known_hosts.connection in ['ssh', 'paramiko'] }}"
   - inv_conn_is_native_ssh: "{{ current_play_context_known_hosts.connection == 'ssh' }}"
   - inv_conn_native_ssh_host_key_cheking: >-
       {{ inv_conn_is_native_ssh and ansible_host_key_checking
@@ -103,11 +103,7 @@
 - name: user known_hosts mode is 0600
   delegate_to: localhost
   run_once: True
-  when:
-  - ('~/.ssh/known_hosts') | expanduser is exists
-  - groups.all
-    | map('extract', hostvars, ['current_play_context_known_hosts', 'connection'])
-    | intersect(['ssh', 'paramiko'])
+  when: ('~/.ssh/known_hosts') | expanduser is exists
   file:
     path: "{{ '~/.ssh/known_hosts' | expanduser }}"
     owner: "{{ lookup('id', 'euname') }}"
