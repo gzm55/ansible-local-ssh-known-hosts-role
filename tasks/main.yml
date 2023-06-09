@@ -24,18 +24,21 @@
     inv_conn_native_ssh_host_key_cheking: >-
       {{ inv_conn_is_native_ssh and ansible_host_key_checking
          | d(ansible_ssh_host_key_checking)
-         | d(lookup('config', 'HOST_KEY_CHECKING')) }}
+         | d(lookup('ansible.builtin.config', 'HOST_KEY_CHECKING')) }}
     inv_conn_paramiko_ssh_host_key_cheking: >-
       {{ not inv_conn_is_native_ssh and ansible_host_key_checking
              | d(ansible_ssh_host_key_checking)
              | d(ansible_paramiko_host_key_checking)
-             | d(lookup('config', 'HOST_KEY_CHECKING')) }}
-    inv_ssh_executrable: "{{ ansible_ssh_executable | d(lookup('config', 'ANSIBLE_SSH_EXECUTABLE')) | d('ssh') }}"
+             | d(lookup('ansible.builtin.config', 'HOST_KEY_CHECKING')) }}
+    inv_ssh_executrable: >-
+      {{ ansible_ssh_executable
+         | d(lookup('ansible.builtin.config', 'ssh_executable', plugin_type="connection", plugin_name="ssh", on_missing='skip'))
+         | d('ssh') }}
 
   when:
   - inv_conn_is_ssh
   - inv_conn_native_ssh_host_key_cheking or inv_conn_paramiko_ssh_host_key_cheking
-  - inv_conn_is_native_ssh or not lookup('config', 'PARAMIKO_HOST_KEY_AUTO_ADD')
+  - inv_conn_is_native_ssh or not lookup('ansible.builtin.config', 'PARAMIKO_HOST_KEY_AUTO_ADD')
 
   block:
   - name: Check openssh support for accept-new option

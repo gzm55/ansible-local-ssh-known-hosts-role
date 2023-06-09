@@ -8,11 +8,11 @@ A Role for accepting ssh fingerprints automatically for the first time.
 Requirements
 ------------
 
-ansible>=2.8
+ansible-core>=2.12
 jinja2>=2.7
 
 For `ansible<2.7`, use version 0.0.3.
-For `ansible<2.8`, use version 1.0.2.
+For `ansible<2.12`, use version 1.0.2.
 
 Role Variables
 --------------
