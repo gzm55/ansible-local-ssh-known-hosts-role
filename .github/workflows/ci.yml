@@ -28,7 +28,7 @@ jobs:
     - name: syntax check
       run: ansible-playbook tests/test.yml -i tests/inventory --syntax-check
 
-    - name: unset become_allow_same_user
+    - name: perform checking
       run: |
         set -x
         ansible-playbook tests/test.yml -i tests/inventory

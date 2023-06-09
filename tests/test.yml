@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: Test this role
+  hosts: all
   gather_facts: False
   roles:
   - ansible-local-ssh-known-hosts-role
@@ -8,11 +9,11 @@
     when:
     - inventory_hostname != 'lxc-test'
     - not (ssh_support_accept_new_hostkey | d)
-    assert:
+    ansible.builtin.assert:
       that: "q('lines', 'ssh-keygen -F ' +  ansible_ssh_host | d(inventory_hostname, True))"
   - name: Assert the hosts are in the known_hosts for openssh >= 7.6
     when:
     - inventory_hostname != 'lxc-test'
     - ssh_support_accept_new_hostkey
-    assert:
+    ansible.builtin.assert:
       that: "ansible_ssh_common_args is match('-o StrictHostKeyChecking=accept-new .*')"

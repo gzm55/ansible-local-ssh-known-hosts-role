@@ -39,7 +39,7 @@
   block:
   - name: Check openssh support for accept-new option
     when: inv_conn_is_native_ssh
-    set_fact:
+    ansible.builtin.set_fact:
       ssh_support_accept_new_hostkey: >-
         {{ lookup('pipe', (current_play_context_known_hosts.ssh_executable | quote)
                           + ' -oStrictHostKeyChecking=accept-new -V 2>&1 || echo FAIL')
@@ -50,7 +50,7 @@
       original_ansible_ssh_common_args: "{{ ansible_ssh_common_args | d(lookup('env', 'ANSIBLE_SSH_COMMON_ARGS')) | d('') }}"
     when:
     - ssh_support_accept_new_hostkey | d
-    set_fact:
+    ansible.builtin.set_fact:
       ansible_ssh_common_args: "-o StrictHostKeyChecking=accept-new {{ original_ansible_ssh_common_args }}"
 
   - name: Search ssh fingerprints
@@ -58,8 +58,8 @@
     when:
     - not ssh_support_accept_new_hostkey | d
     - not local_keygen | d or not local_keygen.rc # if found, break the loop
-    loop: "{{ [ '~/.ssh/known_hosts' | expanduser, '/etc/ssh/ssh_known_hosts' ] | select('exists') | list }}"
-    raw: >-
+    loop: "{{ ['~/.ssh/known_hosts' | expanduser, '/etc/ssh/ssh_known_hosts'] | select('exists') | list }}"
+    ansible.builtin.raw: >-
       ssh-keygen
       -F {{ [ inv_port_is_22 | ternary('', '['),
               inv_host,
@@ -79,7 +79,7 @@
           | map(attribute='rc')
           | select('defined')
           | difference([1])
-    set_fact:
+    ansible.builtin.set_fact:
       ssh_keyscan_args:
         h: "{{ inv_host }}"
         p: "{{ inv_port }}"
@@ -92,7 +92,8 @@
     ansible_connection: local
   run_once: True
   when: item.1 | d([]) | map(attribute='h') | list | union([]) | length > 0
-  shell: ssh-keyscan -H -f - -p {{ item.0 | quote }} >> {{ '~/.ssh/known_hosts' | expanduser | quote }}
+  changed_when: True
+  ansible.builtin.shell: ssh-keyscan -H -f - -p {{ item.0 | quote }} >> {{ '~/.ssh/known_hosts' | expanduser | quote }}
   args:
     # unique filter will trigger a warning in ansible-lint when expr contains loop_var
     stdin: "{{ item.1 | map(attribute='h') | list | union([]) | join('\n') }}"
@@ -104,7 +105,7 @@
   delegate_to: localhost
   run_once: True
   when: ('~/.ssh/known_hosts') | expanduser is exists
-  file:
+  ansible.builtin.file:
     path: "{{ '~/.ssh/known_hosts' | expanduser }}"
     owner: "{{ lookup('id', 'euname') }}"
     mode: 'u=rw,g=,o='
