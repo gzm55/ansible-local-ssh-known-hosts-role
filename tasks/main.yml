@@ -30,6 +30,7 @@
              | d(ansible_ssh_host_key_checking)
              | d(ansible_paramiko_host_key_checking)
              | d(lookup('config', 'HOST_KEY_CHECKING')) }}
+    inv_ssh_executrable: "{{ ansible_ssh_executable | d(lookup('config', 'ANSIBLE_SSH_EXECUTABLE')) | d('ssh') }}"
 
   when:
   - inv_conn_is_ssh
@@ -41,7 +42,7 @@
     when: inv_conn_is_native_ssh
     ansible.builtin.set_fact:
       ssh_support_accept_new_hostkey: >-
-        {{ lookup('pipe', (current_play_context_known_hosts.ssh_executable | quote)
+        {{ lookup('pipe', (inv_ssh_executrable | quote)
                           + ' -oStrictHostKeyChecking=accept-new -V 2>&1 || echo FAIL')
            is not search('FAIL') }}
 

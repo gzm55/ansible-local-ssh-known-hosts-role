@@ -20,7 +20,7 @@ class ActionModule(ActionBase):
         result['connection'] = ctx.connection
         result['remote_addr'] = ctx.remote_addr
         result['port'] = ctx.port
-        result['ssh_executable'] = ctx.ssh_executable
+        #result['ssh_executable'] = ctx.ssh_executable
 
         result['changed'] = False
         return result
