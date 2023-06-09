@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/gzm55/ansible-local-ssh-known-hosts-role.svg?branch=master)](https://travis-ci.org/gzm55/ansible-local-ssh-known-hosts-role)
 
-local_ssh_known_hosts (1.0.3-dev)
+local_ssh_known_hosts (2.0.0.dev)
 =================================
 
 A Role for accepting ssh fingerprints automatically for the first time.
@@ -8,10 +8,11 @@ A Role for accepting ssh fingerprints automatically for the first time.
 Requirements
 ------------
 
-ansible>=2.7
+ansible>=2.8
 jinja2>=2.7
 
 For `ansible<2.7`, use version 0.0.3.
+For `ansible<2.8`, use version 1.0.2.
 
 Role Variables
 --------------

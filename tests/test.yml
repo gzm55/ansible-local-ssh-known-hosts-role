@@ -4,13 +4,13 @@
   roles:
   - ansible-local-ssh-known-hosts-role
   tasks:
-  - name: assert the hosts are in the known_hosts for old openssh or paramiko
+  - name: Assert the hosts are in the known_hosts for old openssh or paramiko
     when:
     - inventory_hostname != 'lxc-test'
     - not (ssh_support_accept_new_hostkey | d)
     assert:
       that: "q('lines', 'ssh-keygen -F ' +  ansible_ssh_host | d(inventory_hostname, True))"
-  - name: assert the hosts are in the known_hosts for openssh >= 7.6
+  - name: Assert the hosts are in the known_hosts for openssh >= 7.6
     when:
     - inventory_hostname != 'lxc-test'
     - ssh_support_accept_new_hostkey
