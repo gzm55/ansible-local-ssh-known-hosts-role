@@ -7,13 +7,13 @@
   tasks:
   - name: Assert the hosts are in the known_hosts for old openssh or paramiko
     when:
-    - inventory_hostname != 'lxc-test'
+    - inventory_hostname != 'psrp-test'
     - not (ssh_support_accept_new_hostkey | d)
     ansible.builtin.assert:
       that: "q('lines', 'ssh-keygen -F ' +  ansible_ssh_host | d(inventory_hostname, True))"
   - name: Assert the hosts are in the known_hosts for openssh >= 7.6
     when:
-    - inventory_hostname != 'lxc-test'
+    - inventory_hostname != 'psrp-test'
     - ssh_support_accept_new_hostkey
     ansible.builtin.assert:
       that: "ansible_ssh_common_args is match('-o StrictHostKeyChecking=accept-new .*')"
