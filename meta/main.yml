@@ -6,7 +6,8 @@ galaxy_info:
 
   license: BSD
 
-  ## new vars ssh_common_args
+  # new vars ssh_common_args from ansible 2.7
+  # lookup plugin config from ansible-core 2.12
   min_ansible_version: "2.12"
 
   platforms:

@@ -7,8 +7,11 @@ env:
 
 jobs:
   test-job:
-    name: test the role
-    runs-on: ubuntu-22.04
+    name: test the role on ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-20.04]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
 
